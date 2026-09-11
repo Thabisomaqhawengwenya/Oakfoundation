@@ -1,22 +1,13 @@
 'use client';
 
 import React, { useRef, useState, useEffect, Suspense } from 'react';
+import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useApp } from '@/context/AppContext';
 import { AccessDenied } from '@/components/AccessDenied';
 import { QRCodeCanvas } from 'qrcode.react';
 import { EVENT_INFO } from '@/lib/types';
-import {
-  Download,
-  Calendar,
-  MapPin,
-  Building2,
-  User,
-  ShieldCheck,
-  CheckCircle,
-  Share2,
-  Sparkles,
-} from 'lucide-react';
+import { CheckCircle2, Download, RotateCcw } from 'lucide-react';
 
 function QrCodeContent() {
   const searchParams = useSearchParams();
@@ -41,7 +32,8 @@ function QrCodeContent() {
     }
   }, [queryId, currentParticipant, partnerParticipants]);
 
-  const participant = participants.find((p) => p.id === selectedPartnerId) || partnerParticipants[0];
+  const participant =
+    participants.find((p) => p.id === selectedPartnerId) || partnerParticipants[0];
 
   // Role Access Guard: Available only to users registered as Partners
   if (!canAccess('QR Code Page')) {
@@ -51,14 +43,14 @@ function QrCodeContent() {
   if (!participant) {
     return (
       <div className="min-h-[70vh] flex items-center justify-center p-6 text-center">
-        <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-md max-w-md">
-          <p className="text-slate-600 mb-4">No Partner registration found.</p>
-          <a
+        <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-md max-w-sm">
+          <p className="text-slate-600 mb-4 text-xs">No Partner registration found.</p>
+          <Link
             href="/register"
-            className="px-4 py-2 bg-[#163866] text-white rounded-xl text-sm font-semibold inline-block"
+            className="px-4 py-2 bg-[#23416F] text-white rounded-xl text-xs font-semibold inline-block"
           >
             Register as Partner
-          </a>
+          </Link>
         </div>
       </div>
     );
@@ -90,153 +82,116 @@ function QrCodeContent() {
     }
   };
 
-  const handleSaveToDevice = () => {
-    handleDownloadPng();
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-slate-100 to-slate-200 py-10 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-xl mx-auto space-y-6">
-        {/* Partner Selector (if multiple partners exist) */}
-        {partnerParticipants.length > 1 && (
-          <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs flex items-center justify-between gap-3 text-xs">
-            <span className="font-semibold text-slate-700">Select Registered Partner Pass:</span>
-            <select
-              value={selectedPartnerId}
-              onChange={(e) => setSelectedPartnerId(e.target.value)}
-              className="px-3 py-1.5 rounded-lg border border-slate-300 text-slate-900 bg-white font-medium focus:ring-2 focus:ring-[#163866] outline-none"
+    <div className="min-h-screen py-8 px-4 sm:px-6">
+      <div className="max-w-md mx-auto space-y-4">
+        {/* Figma Card 1: REGISTRATION COMPLETE Banner */}
+        <div className="bg-gradient-to-br from-[#193257] via-[#162D4F] to-[#12243E] text-white rounded-3xl p-6 shadow-xl flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/15 flex items-center justify-center text-white shrink-0">
+            <CheckCircle2 className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <span className="block text-[9.5px] font-bold tracking-widest text-blue-300 uppercase">
+              Registration Complete
+            </span>
+            <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight leading-tight">
+              You're Registered, {participant.firstName}!
+            </h1>
+            <p className="text-xs text-blue-200/80 font-medium mt-0.5">
+              {participant.organization}
+            </p>
+          </div>
+        </div>
+
+        {/* Figma Card 2: YOUR ENTRY PASS (QR Code) */}
+        <div className="bg-white rounded-3xl shadow-lg border border-slate-200/80 p-6 text-center space-y-4">
+          <span className="block text-[10px] font-bold tracking-widest text-slate-500 uppercase">
+            Your Entry Pass
+          </span>
+
+          {/* QR Container */}
+          <div className="bg-[#EEF3F8] rounded-3xl p-6 inline-block mx-auto border border-slate-200/60">
+            <div ref={qrRef} className="bg-white p-3 rounded-2xl shadow-inner inline-block">
+              <QRCodeCanvas
+                value={qrValue}
+                size={210}
+                level="H"
+                includeMargin={false}
+                bgColor="#ffffff"
+                fgColor="#162A48"
+              />
+            </div>
+          </div>
+
+          <div>
+            <div className="font-mono text-xs font-bold text-slate-700 tracking-wider">
+              {participant.qrCodeId || participant.registrationId}
+            </div>
+            <p className="text-[11px] text-slate-500 mt-0.5 font-medium">
+              Present at event entrance for check-in
+            </p>
+          </div>
+        </div>
+
+        {/* Figma Card 3: REGISTRATION DETAILS Table */}
+        <div className="bg-white rounded-3xl shadow-lg border border-slate-200/80 p-6 space-y-3 text-xs">
+          <span className="block text-[10px] font-bold tracking-widest text-slate-500 uppercase border-b border-slate-100 pb-2">
+            Registration Details
+          </span>
+
+          <div className="space-y-2.5 pt-1 text-slate-700">
+            <div className="flex justify-between items-center py-1 border-b border-slate-100/80">
+              <span className="text-slate-500 font-medium">Name</span>
+              <span className="font-bold text-slate-900 capitalize">
+                {participant.firstName} {participant.lastName}
+              </span>
+            </div>
+
+            <div className="flex justify-between items-center py-1 border-b border-slate-100/80">
+              <span className="text-slate-500 font-medium">Organisation</span>
+              <span className="font-bold text-slate-900">
+                {participant.organization}
+              </span>
+            </div>
+
+            <div className="flex justify-between items-center py-1 border-b border-slate-100/80">
+              <span className="text-slate-500 font-medium">Role</span>
+              <span className="font-bold text-slate-900">{participant.role}</span>
+            </div>
+
+            <div className="flex justify-between items-center py-1 border-b border-slate-100/80">
+              <span className="text-slate-500 font-medium">Dates</span>
+              <span className="font-bold text-slate-900">9-11 November 2026</span>
+            </div>
+
+            <div className="flex justify-between items-center py-1">
+              <span className="text-slate-500 font-medium">Location</span>
+              <span className="font-bold text-slate-900">
+                {EVENT_INFO.venue}, {EVENT_INFO.location}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Action Button: Download QR Code */}
+        <div className="pt-2 space-y-3">
+          <button
+            onClick={handleDownloadPng}
+            className="w-full py-3.5 px-6 rounded-2xl bg-[#23416F] hover:bg-[#193257] text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
+          >
+            <Download className="w-4 h-4" />
+            Download QR Code
+          </button>
+
+          {/* Sub-action: Register another attendee */}
+          <div className="text-center">
+            <Link
+              href="/register"
+              className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 font-medium transition-colors"
             >
-              {partnerParticipants.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.firstName} {p.lastName} ({p.organization})
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
-
-        {/* Digital Pass / QR Code Card */}
-        <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden relative">
-          {/* Header Banner */}
-          <div className="bg-[#163866] text-white p-6 text-center relative overflow-hidden">
-            <div className="inline-flex items-center gap-1.5 bg-white/10 px-3 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wider text-blue-200 mb-2">
-              <Sparkles className="w-3.5 h-3.5" />
-              Official Partner Entry Pass
-            </div>
-            <h1 className="text-2xl font-black tracking-tight">{EVENT_INFO.name}</h1>
-            <p className="text-xs text-blue-200 mt-0.5">Attendance Verification Pass</p>
-          </div>
-
-          {/* Card Body */}
-          <div className="p-6 sm:p-8 space-y-6">
-            {/* Participant Details Display */}
-            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-blue-100 text-[#163866] flex items-center justify-center font-bold text-sm">
-                  <User className="w-5 h-5" />
-                </div>
-                <div>
-                  <span className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold block">
-                    Participant Name
-                  </span>
-                  <span className="text-lg font-extrabold text-slate-900 leading-tight">
-                    {participant.firstName} {participant.lastName}
-                  </span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-200/80 text-xs">
-                <div>
-                  <span className="text-slate-500 block text-[10px] uppercase font-semibold">
-                    Organization
-                  </span>
-                  <span className="font-bold text-slate-800 flex items-center gap-1">
-                    <Building2 className="w-3.5 h-3.5 text-slate-400" />
-                    {participant.organization}
-                  </span>
-                </div>
-
-                <div>
-                  <span className="text-slate-500 block text-[10px] uppercase font-semibold">
-                    Registration ID
-                  </span>
-                  <span className="font-mono font-bold text-[#163866] bg-blue-50 px-2 py-0.5 rounded-md inline-block border border-blue-200">
-                    {participant.registrationId}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* QR Code Container */}
-            <div className="text-center py-2">
-              <div
-                ref={qrRef}
-                className="inline-block p-5 bg-white rounded-3xl border-4 border-[#163866]/15 shadow-inner"
-              >
-                <QRCodeCanvas
-                  value={qrValue}
-                  size={230}
-                  level="H"
-                  includeMargin={false}
-                  bgColor="#ffffff"
-                  fgColor="#0f284e"
-                />
-              </div>
-              <p className="text-[11px] font-mono text-slate-400 mt-2 font-medium">
-                QR ID: {qrValue}
-              </p>
-              <p className="text-xs text-slate-600 mt-1">
-                Present this QR code at the door for rapid check-in entry.
-              </p>
-            </div>
-
-            {/* Download Functionality */}
-            <div className="space-y-3 pt-2">
-              <button
-                onClick={handleDownloadPng}
-                className="w-full py-3.5 px-6 rounded-2xl bg-[#163866] hover:bg-[#0f284e] text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
-              >
-                <Download className="w-4 h-4" />
-                Download QR Code as PNG
-              </button>
-
-              <button
-                onClick={handleSaveToDevice}
-                className="w-full py-2.5 px-4 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold text-xs transition-colors flex items-center justify-center gap-2"
-              >
-                <Share2 className="w-3.5 h-3.5" />
-                Save QR Code to Device
-              </button>
-
-              {downloadSuccess && (
-                <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-medium flex items-center justify-center gap-2 animate-in fade-in">
-                  <CheckCircle className="w-4 h-4" />
-                  QR Code saved to device successfully!
-                </div>
-              )}
-            </div>
-
-            {/* Event Reminder Information */}
-            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-2.5 text-xs text-slate-700">
-              <p className="font-bold text-slate-900 uppercase tracking-wide text-[11px] flex items-center gap-1.5">
-                <ShieldCheck className="w-4 h-4 text-[#163866]" />
-                Event Reminder Information
-              </p>
-              <div className="flex items-start gap-2">
-                <Calendar className="w-4 h-4 text-[#163866] shrink-0 mt-0.5" />
-                <div>
-                  <span className="font-semibold text-slate-900">Event Dates:</span>{' '}
-                  {EVENT_INFO.dates}
-                </div>
-              </div>
-              <div className="flex items-start gap-2">
-                <MapPin className="w-4 h-4 text-[#163866] shrink-0 mt-0.5" />
-                <div>
-                  <span className="font-semibold text-slate-900">Venue Information:</span>{' '}
-                  {EVENT_INFO.venue}, {EVENT_INFO.location}
-                </div>
-              </div>
-            </div>
+              <RotateCcw className="w-3.5 h-3.5" />
+              Register another attendee
+            </Link>
           </div>
         </div>
       </div>
@@ -249,7 +204,7 @@ export default function QrCodePage() {
     <Suspense
       fallback={
         <div className="min-h-[70vh] flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#163866]" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#162D4F]" />
         </div>
       }
     >

@@ -4,22 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/context/AppContext';
 import { UserRole, EVENT_INFO } from '@/lib/types';
-import {
-  UserCheck,
-  Building,
-  Mail,
-  Phone,
-  Utensils,
-  Accessibility,
-  Plane,
-  Hotel,
-  ShieldCheck,
-  CheckCircle2,
-  Download,
-  Calendar,
-  MapPin,
-  Sparkles,
-} from 'lucide-react';
+import { Users, Calendar, Building2, ChevronDown, CheckCircle2, Mail } from 'lucide-react';
 
 const ROLES: UserRole[] = [
   'Partner',
@@ -31,9 +16,9 @@ const ROLES: UserRole[] = [
 
 export default function RegistrationPage() {
   const router = useRouter();
-  const { registerParticipant, canAccess } = useApp();
+  const { registerParticipant } = useApp();
 
-  // Form State
+  // Form Fields strictly matching Figma spec
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [organization, setOrganization] = useState('');
@@ -45,16 +30,20 @@ export default function RegistrationPage() {
   const [accessibilityRequirements, setAccessibilityRequirements] = useState('');
   const [travelRequirements, setTravelRequirements] = useState('');
   const [accommodationRequirements, setAccommodationRequirements] = useState('');
+  const [consentGiven, setConsentGiven] = useState(true);
 
-  // Submission / Modal States
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showEmailConfirmationModal, setShowEmailConfirmationModal] = useState(false);
-  const [registeredData, setRegisteredData] = useState<any>(null);
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [registeredResult, setRegisteredResult] = useState<any>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
+    if (!consentGiven) {
+      alert('Please accept the consent agreement before submitting.');
+      return;
+    }
 
+    setIsSubmitting(true);
     try {
       const result = registerParticipant({
         firstName,
@@ -66,366 +55,290 @@ export default function RegistrationPage() {
         phoneNumber,
         dietaryRequirements: dietaryRequirements || 'None',
         accessibilityRequirements: accessibilityRequirements || 'None',
-        travelRequirements: travelRequirements || 'Local Transport',
-        accommodationRequirements: accommodationRequirements || 'Not required',
+        travelRequirements: travelRequirements || 'None',
+        accommodationRequirements: accommodationRequirements || 'None',
       });
 
-      setRegisteredData(result);
+      setRegisteredResult(result);
 
-      // Workflow handling per Scenario:
       if (role === 'Partner') {
-        // Show confirmation email modal with QR & event info, then user can proceed to QR page
-        setShowEmailConfirmationModal(true);
+        setShowEmailModal(true);
       } else {
-        // OAK Staff, Presenter, Observer, Coordination Team -> redirect per workflow
         router.push(result.redirectUrl);
       }
     } catch (err) {
       console.error(err);
-      alert('An error occurred during registration. Please check your fields.');
+      alert('Registration failed. Please check your fields.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-slate-100 to-slate-200 py-10 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
-        {/* Event Header Card */}
-        <div className="bg-[#163866] text-white rounded-3xl p-8 sm:p-10 mb-8 shadow-xl relative overflow-hidden">
-          <div className="absolute right-0 top-0 translate-x-10 -translate-y-10 w-64 h-64 bg-blue-400/10 rounded-full blur-2xl pointer-events-none" />
-          <div className="relative z-10">
-            <div className="inline-flex items-center gap-2 bg-white/10 text-blue-200 px-3.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wider mb-4 border border-white/10">
-              <Sparkles className="w-3.5 h-3.5" />
-              Event Registration
-            </div>
-            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-3">
-              {EVENT_INFO.name}
-            </h1>
-            <p className="text-slate-200 text-sm sm:text-base max-w-2xl leading-relaxed mb-6">
-              Welcome to the official registration portal. Please complete all required personal,
-              role, and requirement fields below to finalize your registration and access event materials.
-            </p>
+    <div className="min-h-screen py-8 px-4 sm:px-6">
+      <div className="max-w-md mx-auto space-y-5">
+        {/* Figma Hero Card */}
+        <div className="bg-gradient-to-br from-[#193257] via-[#162D4F] to-[#12243E] text-white rounded-3xl p-6 sm:p-7 shadow-xl">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white mb-1">
+            Partner Convening 2026
+          </h1>
+          <p className="text-xs text-blue-200/90 font-medium">
+            Harare · 9-11 November 2026
+          </p>
+        </div>
 
-            <div className="flex flex-wrap gap-4 text-xs sm:text-sm text-blue-100 font-medium pt-4 border-t border-white/15">
-              <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-lg">
-                <Calendar className="w-4 h-4 text-blue-300" />
-                <span>{EVENT_INFO.dates}</span>
-              </div>
-              <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-lg">
-                <MapPin className="w-4 h-4 text-blue-300" />
-                <span>{EVENT_INFO.venue}, {EVENT_INFO.location}</span>
-              </div>
-            </div>
+        {/* 3 Quick Stat Cards */}
+        <div className="grid grid-cols-3 gap-3">
+          <div className="bg-white rounded-2xl p-4 shadow-xs border border-slate-200/80 text-center">
+            <Users className="w-5 h-5 text-blue-400 mx-auto mb-1.5" />
+            <div className="text-lg font-black text-slate-900 leading-tight">110+</div>
+            <div className="text-[10px] text-slate-500 font-medium mt-0.5">Attendees</div>
+          </div>
+
+          <div className="bg-white rounded-2xl p-4 shadow-xs border border-slate-200/80 text-center">
+            <Calendar className="w-5 h-5 text-blue-400 mx-auto mb-1.5" />
+            <div className="text-lg font-black text-slate-900 leading-tight">24</div>
+            <div className="text-[10px] text-slate-500 font-medium mt-0.5">Sessions</div>
+          </div>
+
+          <div className="bg-white rounded-2xl p-4 shadow-xs border border-slate-200/80 text-center">
+            <Building2 className="w-5 h-5 text-blue-400 mx-auto mb-1.5" />
+            <div className="text-lg font-black text-slate-900 leading-tight">38</div>
+            <div className="text-[10px] text-slate-500 font-medium mt-0.5">Partners</div>
           </div>
         </div>
 
         {/* Registration Form Card */}
-        <div className="bg-white rounded-3xl shadow-lg border border-slate-200 overflow-hidden">
-          <div className="border-b border-slate-200 px-6 sm:px-10 py-6 bg-slate-50/50">
-            <h2 className="text-xl font-bold text-slate-900">Registration Form</h2>
-            <p className="text-xs text-slate-500 mt-1">
-              All users must complete the following fields during registration.
-            </p>
-          </div>
+        <div className="bg-white rounded-3xl shadow-lg border border-slate-200/80 p-6 sm:p-7">
+          <h2 className="text-lg font-extrabold text-slate-900 mb-5">
+            Registration Form
+          </h2>
 
-          <form onSubmit={handleSubmit} className="p-6 sm:p-10 space-y-8">
-            {/* Section 1: Personal Information */}
-            <div>
-              <div className="flex items-center gap-2 text-[#163866] font-bold text-sm uppercase tracking-wider mb-4 pb-2 border-b border-slate-100">
-                <UserCheck className="w-4 h-4" />
-                <span>Personal Information</span>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
-                    First Name <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    placeholder="e.g. Tendai"
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-sm focus:ring-2 focus:ring-[#163866] focus:border-transparent transition-all outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
-                    Last Name <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    placeholder="e.g. Chikwanha"
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-sm focus:ring-2 focus:ring-[#163866] focus:border-transparent transition-all outline-none"
-                  />
-                </div>
-
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
-                    Organization <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <Building className="w-4 h-4 absolute left-3.5 top-3 text-slate-400" />
-                    <input
-                      type="text"
-                      required
-                      value={organization}
-                      onChange={(e) => setOrganization(e.target.value)}
-                      placeholder="e.g. Youth Empowerment Trust"
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-sm focus:ring-2 focus:ring-[#163866] focus:border-transparent transition-all outline-none"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Section 2: Optional Information */}
-            <div>
-              <div className="flex items-center gap-2 text-[#163866] font-bold text-sm uppercase tracking-wider mb-4 pb-2 border-b border-slate-100">
-                <ShieldCheck className="w-4 h-4" />
-                <span>Optional Information</span>
-              </div>
-
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* FIRST NAME & LAST NAME */}
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
-                  Sub Partner Program Area (Optional)
+                <label className="block text-[10px] font-bold tracking-wider text-slate-600 uppercase mb-1.5">
+                  First Name <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
-                  value={subPartnerProgramArea}
-                  onChange={(e) => setSubPartnerProgramArea(e.target.value)}
-                  placeholder="e.g. Youth Livelihoods, Child Protection, Climate Action"
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-sm focus:ring-2 focus:ring-[#163866] focus:border-transparent transition-all outline-none"
+                  required
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  placeholder="Maria"
+                  className="w-full px-3.5 py-3 rounded-xl bg-[#EEF3F8] border border-transparent focus:border-[#162D4F] text-slate-900 text-xs font-medium focus:bg-white transition-all outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold tracking-wider text-slate-600 uppercase mb-1.5">
+                  Last Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  placeholder="Schmidt"
+                  className="w-full px-3.5 py-3 rounded-xl bg-[#EEF3F8] border border-transparent focus:border-[#162D4F] text-slate-900 text-xs font-medium focus:bg-white transition-all outline-none"
                 />
               </div>
             </div>
 
-            {/* Section 3: Role Selection */}
+            {/* ORGANISATION */}
             <div>
-              <div className="flex items-center gap-2 text-[#163866] font-bold text-sm uppercase tracking-wider mb-4 pb-2 border-b border-slate-100">
-                <UserCheck className="w-4 h-4" />
-                <span>Role Selection</span>
-              </div>
+              <label className="block text-[10px] font-bold tracking-wider text-slate-600 uppercase mb-1.5">
+                Organisation <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                required
+                value={organization}
+                onChange={(e) => setOrganization(e.target.value)}
+                placeholder="Your organisation name"
+                className="w-full px-3.5 py-3 rounded-xl bg-[#EEF3F8] border border-transparent focus:border-[#162D4F] text-slate-900 text-xs font-medium focus:bg-white transition-all outline-none"
+              />
+            </div>
 
-              <p className="text-xs text-slate-500 mb-3">
-                Users must select one of the following roles. Note: Unique QR codes are generated specifically for Partners for event attendance verification.
-              </p>
+            {/* SUB-PARTNER / PROGRAMME AREA */}
+            <div>
+              <label className="block text-[10px] font-bold tracking-wider text-slate-600 uppercase mb-1.5">
+                Sub-Partner / Programme Area
+              </label>
+              <input
+                type="text"
+                value={subPartnerProgramArea}
+                onChange={(e) => setSubPartnerProgramArea(e.target.value)}
+                placeholder="Optional"
+                className="w-full px-3.5 py-3 rounded-xl bg-[#EEF3F8] border border-transparent focus:border-[#162D4F] text-slate-900 text-xs font-medium focus:bg-white transition-all outline-none"
+              />
+            </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                {ROLES.map((r) => {
-                  const isSelected = role === r;
-                  return (
-                    <button
-                      key={r}
-                      type="button"
-                      onClick={() => setRole(r)}
-                      className={`p-3.5 rounded-2xl border text-left transition-all relative ${
-                        isSelected
-                          ? 'border-[#163866] bg-blue-50/70 text-[#163866] ring-2 ring-[#163866]/20'
-                          : 'border-slate-200 hover:border-slate-300 bg-white text-slate-800'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="font-semibold text-sm">{r}</span>
-                        {isSelected && <CheckCircle2 className="w-4 h-4 text-[#163866]" />}
-                      </div>
-                      <span className="block text-[11px] text-slate-500 mt-1">
-                        {r === 'Partner'
-                          ? 'Receives scannable QR pass'
-                          : r === 'Coordination Team'
-                          ? 'Scanner & Attendance access'
-                          : 'Program & Partners access'}
-                      </span>
-                    </button>
-                  );
-                })}
+            {/* ROLE / CAPACITY */}
+            <div>
+              <label className="block text-[10px] font-bold tracking-wider text-slate-600 uppercase mb-1.5">
+                Role / Capacity <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <select
+                  value={role}
+                  onChange={(e) => setRole(e.target.value as UserRole)}
+                  className="w-full px-3.5 py-3 rounded-xl bg-[#EEF3F8] border border-transparent focus:border-[#162D4F] text-slate-900 text-xs font-semibold focus:bg-white transition-all outline-none appearance-none pr-9 cursor-pointer"
+                >
+                  {ROLES.map((r) => (
+                    <option key={r} value={r}>
+                      {r} {r === 'Partner' ? '(Receives QR Code Entry Pass)' : ''}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5 pointer-events-none" />
               </div>
             </div>
 
-            {/* Section 4: Contact Information */}
+            {/* EMAIL ADDRESS */}
             <div>
-              <div className="flex items-center gap-2 text-[#163866] font-bold text-sm uppercase tracking-wider mb-4 pb-2 border-b border-slate-100">
-                <Mail className="w-4 h-4" />
-                <span>Contact Information</span>
+              <label className="block text-[10px] font-bold tracking-wider text-slate-600 uppercase mb-1.5">
+                Email Address <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@organisation.org"
+                className="w-full px-3.5 py-3 rounded-xl bg-[#EEF3F8] border border-transparent focus:border-[#162D4F] text-slate-900 text-xs font-medium focus:bg-white transition-all outline-none"
+              />
+            </div>
+
+            {/* PHONE NUMBER */}
+            <div>
+              <label className="block text-[10px] font-bold tracking-wider text-slate-600 uppercase mb-1.5">
+                Phone Number
+              </label>
+              <input
+                type="tel"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                placeholder="+263 xx xxx xxxx"
+                className="w-full px-3.5 py-3 rounded-xl bg-[#EEF3F8] border border-transparent focus:border-[#162D4F] text-slate-900 text-xs font-medium focus:bg-white transition-all outline-none"
+              />
+            </div>
+
+            {/* Figma Nested Box: REQUIREMENTS */}
+            <div className="bg-[#EEF3F8] rounded-2xl p-4 space-y-3.5 border border-slate-200/60">
+              <span className="block text-[9.5px] font-bold tracking-widest text-slate-500 uppercase">
+                Requirements
+              </span>
+
+              {/* DIETARY REQUIREMENTS */}
+              <div>
+                <label className="block text-[9.5px] font-bold tracking-wider text-slate-600 uppercase mb-1">
+                  Dietary Requirements
+                </label>
+                <input
+                  type="text"
+                  value={dietaryRequirements}
+                  onChange={(e) => setDietaryRequirements(e.target.value)}
+                  placeholder="e.g. Vegetarian, Halal, Gluten-free"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200/80 text-slate-900 text-xs focus:border-[#162D4F] transition-all outline-none"
+                />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
-                    Email Address <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <Mail className="w-4 h-4 absolute left-3.5 top-3 text-slate-400" />
-                    <input
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="e.g. tendai@organization.org.zw"
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-sm focus:ring-2 focus:ring-[#163866] focus:border-transparent transition-all outline-none"
-                    />
-                  </div>
-                </div>
+              {/* ACCESSIBILITY REQUIREMENTS */}
+              <div>
+                <label className="block text-[9.5px] font-bold tracking-wider text-slate-600 uppercase mb-1">
+                  Accessibility Requirements
+                </label>
+                <input
+                  type="text"
+                  value={accessibilityRequirements}
+                  onChange={(e) => setAccessibilityRequirements(e.target.value)}
+                  placeholder="e.g. Wheelchair access, hearing loop"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200/80 text-slate-900 text-xs focus:border-[#162D4F] transition-all outline-none"
+                />
+              </div>
 
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
-                    Phone Number <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <Phone className="w-4 h-4 absolute left-3.5 top-3 text-slate-400" />
-                    <input
-                      type="tel"
-                      required
-                      value={phoneNumber}
-                      onChange={(e) => setPhoneNumber(e.target.value)}
-                      placeholder="e.g. +263 77 123 4567"
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-sm focus:ring-2 focus:ring-[#163866] focus:border-transparent transition-all outline-none"
-                    />
-                  </div>
-                </div>
+              {/* TRAVEL & ACCOMMODATION */}
+              <div>
+                <label className="block text-[9.5px] font-bold tracking-wider text-slate-600 uppercase mb-1">
+                  Travel & Accommodation
+                </label>
+                <input
+                  type="text"
+                  value={travelRequirements}
+                  onChange={(e) => setTravelRequirements(e.target.value)}
+                  placeholder="e.g. Flight from London, hotel needed"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200/80 text-slate-900 text-xs focus:border-[#162D4F] transition-all outline-none"
+                />
               </div>
             </div>
 
-            {/* Section 5: Additional Requirements */}
-            <div>
-              <div className="flex items-center gap-2 text-[#163866] font-bold text-sm uppercase tracking-wider mb-4 pb-2 border-b border-slate-100">
-                <Utensils className="w-4 h-4" />
-                <span>Additional Requirements</span>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
-                    <Utensils className="w-3.5 h-3.5 text-slate-500" />
-                    Dietary Requirements
-                  </label>
-                  <input
-                    type="text"
-                    value={dietaryRequirements}
-                    onChange={(e) => setDietaryRequirements(e.target.value)}
-                    placeholder="e.g. Vegetarian, Halal, Gluten-Free, Nut Allergy, None"
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-sm focus:ring-2 focus:ring-[#163866] focus:border-transparent transition-all outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
-                    <Accessibility className="w-3.5 h-3.5 text-slate-500" />
-                    Accessibility Requirements
-                  </label>
-                  <input
-                    type="text"
-                    value={accessibilityRequirements}
-                    onChange={(e) => setAccessibilityRequirements(e.target.value)}
-                    placeholder="e.g. Wheelchair access, Visual/Hearing assistance, None"
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-sm focus:ring-2 focus:ring-[#163866] focus:border-transparent transition-all outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
-                    <Plane className="w-3.5 h-3.5 text-slate-500" />
-                    Travel Requirements
-                  </label>
-                  <input
-                    type="text"
-                    value={travelRequirements}
-                    onChange={(e) => setTravelRequirements(e.target.value)}
-                    placeholder="e.g. Local transport, Flight from Bulawayo, Coach"
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-sm focus:ring-2 focus:ring-[#163866] focus:border-transparent transition-all outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
-                    <Hotel className="w-3.5 h-3.5 text-slate-500" />
-                    Accommodation Requirements
-                  </label>
-                  <input
-                    type="text"
-                    value={accommodationRequirements}
-                    onChange={(e) => setAccommodationRequirements(e.target.value)}
-                    placeholder="e.g. Cresta Lodge (2 Nights), Not required"
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-sm focus:ring-2 focus:ring-[#163866] focus:border-transparent transition-all outline-none"
-                  />
-                </div>
-              </div>
+            {/* Consent Statement Checkbox */}
+            <div className="pt-2">
+              <label className="flex items-start gap-2.5 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={consentGiven}
+                  onChange={(e) => setConsentGiven(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 rounded text-[#162D4F] focus:ring-[#162D4F] border-slate-300"
+                />
+                <span className="text-[11px] text-slate-600 leading-tight">
+                  I agree to OAK Foundation's{' '}
+                  <span className="text-[#162D4F] font-semibold underline">privacy policy</span>{' '}
+                  and consent to my registration data being used for event coordination.
+                </span>
+              </label>
             </div>
 
-            {/* Registration Action */}
-            <div className="pt-6 border-t border-slate-200">
+            {/* Register Action Button */}
+            <div className="pt-2">
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-4 px-8 rounded-2xl bg-[#163866] hover:bg-[#0f284e] text-white font-bold text-base shadow-lg shadow-blue-900/20 hover:shadow-xl transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
+                className="w-full py-3.5 px-6 rounded-2xl bg-[#23416F] hover:bg-[#193257] text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
               >
-                <CheckCircle2 className="w-5 h-5" />
-                {isSubmitting ? 'Processing Registration...' : 'Register'}
+                {isSubmitting ? 'Registering...' : 'Register & Generate QR Code'}
               </button>
             </div>
+
+            {/* GDPR Disclaimer Footer */}
+            <p className="text-[10px] text-slate-400 text-center pt-2 leading-relaxed">
+              Your data is secured and handled by OAK Foundation in accordance with GDPR.
+            </p>
           </form>
         </div>
       </div>
 
-      {/* Scenario 1 Partner Confirmation Email Simulation Modal */}
-      {showEmailConfirmationModal && registeredData && (
+      {/* Confirmation Email Modal */}
+      {showEmailModal && registeredResult && (
         <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
-            <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 mb-4 border border-emerald-200 mx-auto">
-              <Mail className="w-7 h-7" />
+          <div className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 text-center space-y-4 animate-in fade-in zoom-in-95">
+            <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 mx-auto border border-emerald-200">
+              <Mail className="w-6 h-6" />
             </div>
 
-            <div className="text-center mb-6">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-100 px-3 py-1 rounded-full">
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full">
                 Confirmation Email Sent
               </span>
-              <h3 className="text-xl font-bold text-slate-900 mt-2">Registration Confirmed!</h3>
-              <p className="text-xs text-slate-600 mt-1">
-                A confirmation email containing your registration details, downloadable QR code, and event info has been prepared for <strong className="text-slate-800">{registeredData.participant.email}</strong>.
+              <h3 className="text-lg font-bold text-slate-900 mt-2">
+                You're Registered, {registeredResult.participant.firstName}!
+              </h3>
+              <p className="text-xs text-slate-500 mt-1">
+                Your entry pass with unique QR Code is ready.
               </p>
             </div>
 
-            {/* Email Preview Card */}
-            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs space-y-2 mb-6 text-slate-700">
-              <div className="flex justify-between border-b border-slate-200 pb-2">
-                <span className="text-slate-500">Participant Name:</span>
-                <span className="font-semibold text-slate-900">{registeredData.participant.firstName} {registeredData.participant.lastName}</span>
-              </div>
-              <div className="flex justify-between border-b border-slate-200 pb-2">
-                <span className="text-slate-500">Organization:</span>
-                <span className="font-semibold text-slate-900">{registeredData.participant.organization}</span>
-              </div>
-              <div className="flex justify-between border-b border-slate-200 pb-2">
-                <span className="text-slate-500">Registration ID:</span>
-                <span className="font-mono font-bold text-[#163866]">{registeredData.participant.registrationId}</span>
-              </div>
-              <div className="flex justify-between border-b border-slate-200 pb-2">
-                <span className="text-slate-500">QR Code ID:</span>
-                <span className="font-mono text-slate-800">{registeredData.participant.qrCodeId}</span>
-              </div>
-              <div className="flex justify-between pt-1">
-                <span className="text-slate-500">Event Dates & Venue:</span>
-                <span className="font-medium text-slate-800 text-right">9–11 Nov 2026, Cresta Lodge</span>
-              </div>
-            </div>
-
-            <div className="space-y-2.5">
-              <button
-                onClick={() => {
-                  setShowEmailConfirmationModal(false);
-                  router.push(registeredData.redirectUrl);
-                }}
-                className="w-full py-3 px-4 rounded-xl bg-[#163866] text-white font-semibold text-sm hover:bg-[#0f284e] transition-colors flex items-center justify-center gap-2"
-              >
-                Proceed to QR Code Page
-              </button>
-            </div>
+            <button
+              onClick={() => {
+                setShowEmailModal(false);
+                router.push(registeredResult.redirectUrl);
+              }}
+              className="w-full py-3 px-4 rounded-xl bg-[#23416F] hover:bg-[#193257] text-white font-bold text-xs transition-colors"
+            >
+              View Entry Pass
+            </button>
           </div>
         </div>
       )}

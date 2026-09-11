@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AppProvider } from "@/context/AppContext";
 import { Navbar } from "@/components/Navbar";
+import { BottomNav } from "@/components/BottomNav";
 import { Footer } from "@/components/Footer";
 
 const geistSans = Geist({
@@ -17,7 +18,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "OAK Foundation Event Attendance Platform",
-  description: "Official registration, check-in, program, and partner platform for OAK Foundation Event (9-11 November 2026, Cresta Lodge, Msasa).",
+  description: "Official registration, check-in, program, and partner platform for OAK Foundation Partner Convening 2026.",
 };
 
 export default function RootLayout({
@@ -30,10 +31,11 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-slate-50 text-slate-900">
+      <body className="min-h-full flex flex-col bg-[#F3F5F9] text-slate-900 pb-20">
         <AppProvider>
           <Navbar />
           <main className="flex-1">{children}</main>
+          <BottomNav />
           <Footer />
         </AppProvider>
       </body>
