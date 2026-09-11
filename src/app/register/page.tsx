@@ -3,8 +3,8 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/context/AppContext';
-import { UserRole, EVENT_INFO } from '@/lib/types';
-import { Users, Calendar, Building2, ChevronDown, CheckCircle2, Mail } from 'lucide-react';
+import { UserRole } from '@/lib/types';
+import { Users, Calendar, Building2, ChevronDown, Mail, Check } from 'lucide-react';
 
 const ROLES: UserRole[] = [
   'Partner',
@@ -23,7 +23,8 @@ export default function RegistrationPage() {
   const [lastName, setLastName] = useState('');
   const [organization, setOrganization] = useState('');
   const [subPartnerProgramArea, setSubPartnerProgramArea] = useState('');
-  const [role, setRole] = useState<UserRole>('Partner');
+  const [role, setRole] = useState<UserRole | ''>('');
+  const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [dietaryRequirements, setDietaryRequirements] = useState('');
@@ -38,6 +39,10 @@ export default function RegistrationPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!role) {
+      alert('Please select your role / capacity.');
+      return;
+    }
     if (!consentGiven) {
       alert('Please accept the consent agreement before submitting.');
       return;
@@ -50,7 +55,7 @@ export default function RegistrationPage() {
         lastName,
         organization,
         subPartnerProgramArea: subPartnerProgramArea || undefined,
-        role,
+        role: role as UserRole,
         email,
         phoneNumber,
         dietaryRequirements: dietaryRequirements || 'None',
@@ -76,11 +81,11 @@ export default function RegistrationPage() {
 
   return (
     <div className="min-h-screen py-8 px-4 sm:px-6">
-      <div className="max-w-md mx-auto space-y-5">
+      <div className="max-w-xl mx-auto space-y-5">
         {/* Figma Hero Card */}
         <div className="bg-gradient-to-br from-[#193257] via-[#162D4F] to-[#12243E] text-white rounded-3xl p-6 sm:p-7 shadow-xl">
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white mb-1">
-            Partner Convening 2026
+            Partner<br />Convening 2026
           </h1>
           <p className="text-xs text-blue-200/90 font-medium">
             Harare · 9-11 November 2026
@@ -175,25 +180,53 @@ export default function RegistrationPage() {
               />
             </div>
 
-            {/* ROLE / CAPACITY */}
-            <div>
+            {/* ROLE / CAPACITY with Custom Figma Dropdown */}
+            <div className="relative">
               <label className="block text-[10px] font-bold tracking-wider text-slate-600 uppercase mb-1.5">
                 Role / Capacity <span className="text-red-500">*</span>
               </label>
-              <div className="relative">
-                <select
-                  value={role}
-                  onChange={(e) => setRole(e.target.value as UserRole)}
-                  className="w-full px-3.5 py-3 rounded-xl bg-[#EEF3F8] border border-transparent focus:border-[#162D4F] text-slate-900 text-xs font-semibold focus:bg-white transition-all outline-none appearance-none pr-9 cursor-pointer"
-                >
+
+              <button
+                type="button"
+                onClick={() => setIsRoleDropdownOpen(!isRoleDropdownOpen)}
+                className="w-full px-3.5 py-3 rounded-xl bg-[#EEF3F8] border border-transparent focus:border-[#162D4F] text-slate-900 text-xs font-medium flex items-center justify-between outline-none cursor-pointer"
+              >
+                <span className={role ? 'font-semibold text-slate-900' : 'text-slate-500'}>
+                  {role || 'Select your role'}
+                </span>
+                <ChevronDown
+                  className={`w-4 h-4 text-slate-400 transition-transform ${
+                    isRoleDropdownOpen ? 'rotate-180' : ''
+                  }`}
+                />
+              </button>
+
+              {/* Opened Dropdown List Matching Figma Screenshot */}
+              {isRoleDropdownOpen && (
+                <div className="absolute top-full left-0 right-0 mt-1 z-30 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden p-1.5 space-y-1">
+                  <div className="bg-[#172A4A] text-white px-3 py-2 rounded-xl text-xs font-bold">
+                    Select your role
+                  </div>
                   {ROLES.map((r) => (
-                    <option key={r} value={r}>
-                      {r} {r === 'Partner' ? '(Receives QR Code Entry Pass)' : ''}
-                    </option>
+                    <button
+                      key={r}
+                      type="button"
+                      onClick={() => {
+                        setRole(r);
+                        setIsRoleDropdownOpen(false);
+                      }}
+                      className={`w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-medium transition-colors flex items-center justify-between ${
+                        role === r
+                          ? 'bg-blue-50 text-[#172A4A] font-bold'
+                          : 'text-slate-700 hover:bg-slate-50'
+                      }`}
+                    >
+                      <span>{r}</span>
+                      {role === r && <Check className="w-3.5 h-3.5 text-[#172A4A]" />}
+                    </button>
                   ))}
-                </select>
-                <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5 pointer-events-none" />
-              </div>
+                </div>
+              )}
             </div>
 
             {/* EMAIL ADDRESS */}
@@ -220,7 +253,7 @@ export default function RegistrationPage() {
                 type="tel"
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
-                placeholder="+263 xx xxx xxxx"
+                placeholder="+41 xx xxx xx xx"
                 className="w-full px-3.5 py-3 rounded-xl bg-[#EEF3F8] border border-transparent focus:border-[#162D4F] text-slate-900 text-xs font-medium focus:bg-white transition-all outline-none"
               />
             </div>
@@ -291,14 +324,14 @@ export default function RegistrationPage() {
               </label>
             </div>
 
-            {/* Register Action Button */}
+            {/* Register Action Button: exact "Register" text matching screenshot */}
             <div className="pt-2">
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-3.5 px-6 rounded-2xl bg-[#23416F] hover:bg-[#193257] text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
+                className="w-full py-3.5 px-6 rounded-2xl bg-[#172A4A] hover:bg-[#112037] text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
               >
-                {isSubmitting ? 'Registering...' : 'Register & Generate QR Code'}
+                {isSubmitting ? 'Registering...' : 'Register'}
               </button>
             </div>
 
@@ -335,7 +368,7 @@ export default function RegistrationPage() {
                 setShowEmailModal(false);
                 router.push(registeredResult.redirectUrl);
               }}
-              className="w-full py-3 px-4 rounded-xl bg-[#23416F] hover:bg-[#193257] text-white font-bold text-xs transition-colors"
+              className="w-full py-3 px-4 rounded-xl bg-[#172A4A] hover:bg-[#112037] text-white font-bold text-xs transition-colors"
             >
               View Entry Pass
             </button>
